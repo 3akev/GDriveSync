@@ -1,8 +1,6 @@
-import asyncio
 from datetime import datetime
 from client.client import GoogleDriveClient
 from consts import FOLDER_TYPE, logger
-from typing import Optional
 
 DATEFORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -25,6 +23,11 @@ class GoogleDriveDiff(GoogleDriveClient):
             if owner.get("emailAddress") in self.accounts
         }
 
+        if len(owners) > 0:
+            # if one of dirs is owned, use that account for better results
+            owner = list(owners.values())[0]
+            self._set_secret_by_email(owner)
+
         for _, owner in owners.items():
             await self.cache.fetch(f"'{owner}' in owners", shared=False, fields=fields)
 
@@ -35,10 +38,6 @@ class GoogleDriveDiff(GoogleDriveClient):
                     # otherwise google drive likes to skip some files on a whim
                     # if the request is too large
                     await self.cache.fetch_folder_and_descendants(fid, fields=fields)
-            # await self.fetch_shared_files(
-            #     self.accounts,
-            #     fields=fields,
-            # )
 
         print("total files fetched:", len(self.cache.file_info))
 

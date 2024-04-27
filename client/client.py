@@ -44,15 +44,14 @@ class GoogleDriveClient:
         self._set_secret(secret)
 
     def _set_secret(self, secret):
-        self.email = [k for k, v in self.accounts.items() if v == secret][0]
-        self.api = GoogleDriveApiWrapper(self.loop, secret)
+        email = [k for k, v in self.accounts.items() if v == secret][0]
+        self._set_secret_by_email(email)
+
+    def _set_secret_by_email(self, email):
+        self.email = email
+        self.api = GoogleDriveApiWrapper(self.loop, self.accounts[email])
         self.cache = InfoCache(self.api)
         logger.info(f"Using account {self.email}")
-
-    async def fetch_shared_files(self, accounts, fields=None):
-        query = " or ".join([f"'{x}' in owners" for x in accounts])
-        query = f"not ({query})"
-        return await self.cache.fetch(query, shared=True, fields=fields)
 
     async def run(self, *args, **kwargs):
         raise NotImplementedError("run method not implemented")
