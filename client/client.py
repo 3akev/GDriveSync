@@ -9,13 +9,10 @@ from consts import logger
 
 
 class GoogleDriveClient:
-    def __init__(self, loop, secrets_dir, account_idx) -> None:
+    def __init__(self, secrets_dir, account_idx) -> None:
         self.secrets_dir = secrets_dir
 
         self.accounts = {}
-        if not loop:
-            loop = asyncio.get_event_loop()
-        self.loop = loop
 
         if os.path.isdir(secrets_dir):
             secrets = sorted(
@@ -49,7 +46,7 @@ class GoogleDriveClient:
 
     def _set_secret_by_email(self, email):
         self.email = email
-        self.api = GoogleDriveApiWrapper(self.loop, self.accounts[email])
+        self.api = GoogleDriveApiWrapper(self.accounts[email])
         self.cache = InfoCache(self.api)
         logger.info(f"Using account {self.email}")
 

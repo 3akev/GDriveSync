@@ -16,8 +16,9 @@ async def async_exec(loop, func, *args, **kwargs) -> Any:
 
 
 class GoogleDriveRequestBatcher:
-    def __init__(self, loop, api) -> None:
-        self.loop = loop
+    def __init__(self, api) -> None:
+        # NEEDS a running loop, only create this object after the loop is running
+        self.loop = asyncio.get_running_loop()
         self.api = api
 
         self.batch_queue = []

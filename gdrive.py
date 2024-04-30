@@ -17,39 +17,33 @@ from consts import logger
 
 
 def diff_directories(args):
-    loop = asyncio.get_event_loop()
-    diff = GoogleDriveDiff(loop, args.secrets, args.account)
-    loop.run_until_complete(diff.run(args.first, args.second))
+    diff = GoogleDriveDiff(args.secrets, args.account)
+    asyncio.run(diff.run(args.first, args.second))
 
 
 def print_quota(args):
-    loop = asyncio.get_event_loop()
-    quota = GoogleDriveQuota(loop, args.secrets, args.account)
-    loop.run_until_complete(quota.run())
+    quota = GoogleDriveQuota(args.secrets, args.account)
+    asyncio.run(quota.run())
 
 
 def browse_files(args):
-    loop = asyncio.get_event_loop()
-    browser = GoogleDriveBrowser(loop, args.secrets, args.account)
-    loop.run_until_complete(browser.run(args.root, args.orphans))
+    browser = GoogleDriveBrowser(args.secrets, args.account)
+    asyncio.run(browser.run(args.root, args.orphans))
 
 
 def link_files(args):
-    loop = asyncio.get_event_loop()
-    linker = GoogleDriveLinker(loop, args.secrets, args.account)
-    loop.run_until_complete(linker.run(args.target, args.destination))
+    linker = GoogleDriveLinker(args.secrets, args.account)
+    asyncio.run(linker.run(args.target, args.destination))
 
 
 def cleanup_files(args):
-    loop = asyncio.get_event_loop()
-    cleaner = GoogleDriveCleaner(loop, args.secrets, args.account)
-    loop.run_until_complete(cleaner.run(*args.delete, dry_run=args.dry_run))
+    cleaner = GoogleDriveCleaner(args.secrets, args.account)
+    asyncio.run(cleaner.run(*args.delete, dry_run=args.dry_run))
 
 
 def backup_files(args):
-    loop = asyncio.get_event_loop()
-    googledrivecloner = GoogleDriveCloner(loop, args.secrets, args.account)
-    loop.run_until_complete(
+    googledrivecloner = GoogleDriveCloner(args.secrets, args.account)
+    asyncio.run(
         googledrivecloner.run(
             base_folder_id=args.source_folder_id,
             destination_parent_folder_id=args.destination_parent_folder_id,
@@ -60,9 +54,8 @@ def backup_files(args):
 
 
 def rotate_backups(args):
-    loop = asyncio.get_event_loop()
-    google_backup_rotator = GoogleDriveRotator(loop, args.secrets, args.account)
-    loop.run_until_complete(
+    google_backup_rotator = GoogleDriveRotator(args.secrets, args.account)
+    asyncio.run(
         google_backup_rotator.run(
             base_folder_id=args.source_folder_id,
             destination_parent_folder_id=args.destination_parent_folder_id,

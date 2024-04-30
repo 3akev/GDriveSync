@@ -8,8 +8,8 @@ from tqdm.asyncio import tqdm
 
 
 class GoogleDriveCloner(GoogleDriveClient):
-    def __init__(self, loop, secrets_dir, account_idx) -> None:
-        super().__init__(loop, secrets_dir, account_idx)
+    def __init__(self, secrets_dir, account_idx) -> None:
+        super().__init__(secrets_dir, account_idx)
         self.num_folders_to_copy = 0
         self.files_to_copy = []
 

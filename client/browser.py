@@ -18,8 +18,8 @@ class GoogleDriveBrowser(GoogleDriveClient):
     Only owner's files are shown. Only supports browsing, no file operations are performed.
     """
 
-    def __init__(self, loop, secrets_dir, account_idx) -> None:
-        super().__init__(loop, secrets_dir, account_idx)
+    def __init__(self, secrets_dir, account_idx) -> None:
+        super().__init__(secrets_dir, account_idx)
 
         self.copied_files = set()
         self.folders_copied = list()

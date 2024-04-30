@@ -24,7 +24,7 @@ DEFAULT_FIELDS = {
 
 
 class GoogleDriveApiWrapper:
-    def __init__(self, loop, secret) -> None:
+    def __init__(self, secret) -> None:
         credentials = Credentials.from_service_account_file(secret, scopes=SCOPES)
 
         # Create a new Http() object for every request because httplib2 is not thread-safe
@@ -38,15 +38,23 @@ class GoogleDriveApiWrapper:
         authorized_http = google_auth_httplib2.AuthorizedHttp(
             credentials, http=httplib2.Http()
         )
-        api = discovery.build(
+        self.api = discovery.build(
             "drive",
             "v3",
             requestBuilder=build_request,  # type: ignore
             http=authorized_http,
         )
-        self.batcher = GoogleDriveRequestBatcher(loop, api)
-        self.files = api.files()
-        self.about = api.about()
+
+        # lazy init, so by the time it's created we have a running loop
+        self._batcher: GoogleDriveRequestBatcher = None  # type: ignore
+        self.files = self.api.files()
+        self.about = self.api.about()
+
+    @property
+    def batcher(self):
+        if self._batcher is None:
+            self._batcher = GoogleDriveRequestBatcher(self.api)
+        return self._batcher
 
     ################################################################################
     # Raw API calls                                                                #

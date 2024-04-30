@@ -4,7 +4,7 @@ This repository contains an async wrapper over the Google Drive API,
 with support for request batching, and a collection of "clients" that
 perform specific operations on the API.
 
-Runs on python 3.11.8 and the library versions in `requirements.txt`. Other
+Runs on python 3.11.8 and 3.12.3 and the library versions in `requirements.txt`. Other
 versions may work but are not tested.
 
 ## Usage
