@@ -2,13 +2,12 @@ import asyncio
 from typing import Optional
 
 from client.cleaner import GoogleDriveCleaner
-from client.client import GoogleDriveClient
 from client.cloner import GoogleDriveCloner
 from consts import logger
 
 
 class GoogleDriveRotator(GoogleDriveCloner, GoogleDriveCleaner):
-    async def run(
+    async def run(  # type: ignore
         self,
         base_folder_id: str,
         destination_parent_folder_id: str,
@@ -16,9 +15,7 @@ class GoogleDriveRotator(GoogleDriveCloner, GoogleDriveCleaner):
         dry_run: bool = False,
     ):
         fields = {"createdTime"}
-        await self.cache.fetch(
-            f"'{destination_parent_folder_id}' in parents", fields=fields
-        )
+        await self.cache.fetch(f"'{destination_parent_folder_id}' in parents", fields=fields)
         backups = list(self.cache.file_info.items())
 
         if len(backups) >= len(self.accounts):
@@ -27,13 +24,10 @@ class GoogleDriveRotator(GoogleDriveCloner, GoogleDriveCleaner):
 
             oldest = sorted_backups[0]
             picked = oldest[1]["owners"][0]["emailAddress"]
-            secret = self.accounts[picked]
 
-            logger.info(
-                f"Deleting oldest backup {oldest[1]['name']} ({oldest[0]}) owner: {picked}"
-            )
+            logger.info(f"Deleting oldest backup {oldest[1]['name']} ({oldest[0]}) owner: {picked}")
 
-            self._set_secret(secret)
+            self._set_secret_by_email(picked)
 
             await self.cache.fetch_files(oldest[0])
             await self.clean(oldest[0], dry_run=dry_run)
@@ -49,8 +43,7 @@ class GoogleDriveRotator(GoogleDriveCloner, GoogleDriveCleaner):
             unused = [x for x in self.accounts if x not in emails]
 
             picked = unused[0]
-            secret = self.accounts[picked]
-            self._set_secret(secret)
+            self._set_secret_by_email(picked)
 
         await self.clone(
             base_folder_id=base_folder_id,

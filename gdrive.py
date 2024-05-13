@@ -17,32 +17,32 @@ from consts import logger
 
 
 def diff_directories(args):
-    diff = GoogleDriveDiff(args.secrets, args.account)
+    diff = GoogleDriveDiff(args)
     asyncio.run(diff.run(args.first, args.second))
 
 
 def print_quota(args):
-    quota = GoogleDriveQuota(args.secrets, args.account)
+    quota = GoogleDriveQuota(args)
     asyncio.run(quota.run())
 
 
 def browse_files(args):
-    browser = GoogleDriveBrowser(args.secrets, args.account)
+    browser = GoogleDriveBrowser(args)
     asyncio.run(browser.run(args.root, args.orphans))
 
 
 def link_files(args):
-    linker = GoogleDriveLinker(args.secrets, args.account)
+    linker = GoogleDriveLinker(args)
     asyncio.run(linker.run(args.target, args.destination))
 
 
 def cleanup_files(args):
-    cleaner = GoogleDriveCleaner(args.secrets, args.account)
+    cleaner = GoogleDriveCleaner(args)
     asyncio.run(cleaner.run(*args.delete, dry_run=args.dry_run))
 
 
 def backup_files(args):
-    googledrivecloner = GoogleDriveCloner(args.secrets, args.account)
+    googledrivecloner = GoogleDriveCloner(args)
     asyncio.run(
         googledrivecloner.run(
             base_folder_id=args.source_folder_id,
@@ -54,7 +54,7 @@ def backup_files(args):
 
 
 def rotate_backups(args):
-    google_backup_rotator = GoogleDriveRotator(args.secrets, args.account)
+    google_backup_rotator = GoogleDriveRotator(args)
     asyncio.run(
         google_backup_rotator.run(
             base_folder_id=args.source_folder_id,
@@ -78,7 +78,11 @@ def parse_arguments():
         action="store_true",
     )
     parser.add_argument("-q", "--quiet", help="Decrease output verbosity", action="store_true")
-    parser.add_argument("-s", "--secrets", help="Path to secrets directory or file", required=True)
+
+    creds_group = parser.add_mutually_exclusive_group(required=True)
+    creds_group.add_argument("-s", "--secrets", help="Path to secrets directory or file")
+    creds_group.add_argument("--oauth", help="Use OAuth2 credentials", action="store_true")
+
     parser.add_argument(
         "-a",
         "--account",
@@ -137,7 +141,7 @@ def main():
     if args.verbose:
         logger.setLevel(logging.DEBUG)
     elif args.very_verbose:
-        logger.setLevel(logging.TRACE)
+        logger.setLevel(logging.TRACE)  # type: ignore
     elif args.quiet:
         logger.setLevel(logging.WARNING)
 

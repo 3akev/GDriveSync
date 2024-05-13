@@ -7,8 +7,8 @@ from tqdm.asyncio import tqdm
 
 
 class GoogleDriveCloner(GoogleDriveClient):
-    def __init__(self, secrets_dir, account_idx) -> None:
-        super().__init__(secrets_dir, account_idx)
+    def __init__(self, args) -> None:
+        super().__init__(args)
         self.num_folders_to_copy = 0
         self.files_to_copy = []
 
@@ -30,7 +30,7 @@ class GoogleDriveCloner(GoogleDriveClient):
         item_info = self.cache.file_info[folder_id]
 
         if self.cache.is_ignored(item_info["name"]):
-            logger.trace(f"skipping {item_info['name']}")
+            logger.trace(f"skipping {item_info['name']}")  # type: ignore
             return None
 
         if folder_id in self.folders_copied:
@@ -72,7 +72,7 @@ class GoogleDriveCloner(GoogleDriveClient):
         item_info = self.cache.file_info[file_id]
 
         if self.cache.is_ignored(item_info["name"]):
-            logger.trace(f"skipping {item_info['name']}")
+            logger.trace(f"skipping {item_info['name']}")  # type: ignore
             return None
 
         if file_id in self.files_copied:
@@ -91,7 +91,7 @@ class GoogleDriveCloner(GoogleDriveClient):
             return new_file_id
 
     async def log_item_copied(self, item_id, current, total):
-        logger.trace(f"Copied {self.cache.build_path(item_id).ljust(120)}" f" {item_id.ljust(40)} {current}/{total}")
+        logger.trace(f"Copied {self.cache.build_path(item_id).ljust(120)}" f" {item_id.ljust(40)} {current}/{total}")  # type: ignore
 
     async def clone(
         self,
@@ -148,7 +148,7 @@ class GoogleDriveCloner(GoogleDriveClient):
         )
         logger.info("Done")
 
-    async def run(
+    async def run(  # type: ignore
         self,
         base_folder_id: str,
         destination_parent_folder_id: str,

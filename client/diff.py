@@ -12,7 +12,7 @@ def parse_time(time_str):
 
 
 class GoogleDriveDiff(GoogleDriveClient):
-    async def run(self, first, second):
+    async def run(self, first, second):  # type: ignore
         fields = {"createdTime", "modifiedTime"}
         files = await self.cache.fetch_files(first, second, fields=fields)
 
@@ -78,14 +78,9 @@ class GoogleDriveDiff(GoogleDriveClient):
     async def compare(self, first, second):
         first, info1 = first
         second, info2 = second
-        if (
-            info1.get("mimeType") == FOLDER_TYPE
-            and info2.get("mimeType") == FOLDER_TYPE
-        ):
+        if info1.get("mimeType") == FOLDER_TYPE and info2.get("mimeType") == FOLDER_TYPE:
             children1 = list(self.cache.get_folder_children(first, filter_ignored=True))
-            children2 = list(
-                self.cache.get_folder_children(second, filter_ignored=True)
-            )
+            children2 = list(self.cache.get_folder_children(second, filter_ignored=True))
 
             paired1 = set()
             paired2 = set()
@@ -103,9 +98,7 @@ class GoogleDriveDiff(GoogleDriveClient):
 
             acc1, acc2 = [], []
             for fid1, info1, fid2, info2 in pairs:
-                (new1, new2), (np1, np2) = await self.compare(
-                    (fid1, info1), (fid2, info2)
-                )
+                (new1, new2), (np1, np2) = await self.compare((fid1, info1), (fid2, info2))
                 acc1.extend(new1)
                 acc2.extend(new2)
 
@@ -138,8 +131,8 @@ class GoogleDriveDiff(GoogleDriveClient):
             # logger.trace(f"{info1['name']} ({first}) and ({second}) equal")
             return 0
         elif date1 > date2:
-            logger.trace(f"{info1['name']} ({first}) is newer than ({second})")
+            logger.trace(f"{info1['name']} ({first}) is newer than ({second})")  # type: ignore
             return 1
         else:
-            logger.trace(f"{info2['name']} ({second}) is newer than ({first})")
+            logger.trace(f"{info2['name']} ({second}) is newer than ({first})")  # type: ignore
             return -1

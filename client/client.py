@@ -9,50 +9,61 @@ from consts import logger, SCOPES
 
 
 class GoogleDriveClient:
-    def __init__(self, secrets_dir, account_idx) -> None:
-        self.secrets_dir = secrets_dir
-
+    def __init__(self, args) -> None:
         self.accounts = {}
-
-        if os.path.isdir(secrets_dir):
-            secrets = sorted(
-                os.path.join(secrets_dir, x) for x in os.listdir(secrets_dir) if x.lower().endswith(".json")
-            )
-            for file in secrets:
-                with open(file, "r") as f:
-                    self.accounts[json.load(f)["client_email"]] = file
-
-            secret = secrets[account_idx - 1]
-
-        elif os.path.isfile(secrets_dir):
-            with open(secrets_dir, "r") as f:
-                self.accounts[json.load(f)["client_email"]] = secrets_dir
-            secret = secrets_dir
-        else:
-            logger.error(f"Secrets file/dir not found: {secrets_dir}")
-            sys.exit(1)
 
         self.email: str
         self.api: GoogleDriveApiWrapper
         self.cache: InfoCache
 
-        self._set_secret(secret)
+        self.oauth = args.oauth
 
-    def _set_secret(self, secret):
-        email = [k for k, v in self.accounts.items() if v == secret][0]
+        creds = self.authenticate(args)
+        self._set_secret(creds)
+
+    def authenticate(self, args):
+        if args.oauth:
+            credentials = self.authenticate_oauth()
+        else:
+            credentials = self.authenticate_service_account(args.secrets, args.account)
+        return credentials
+
+    def set_creds_for_secret(self, secret):
+        with open(secret, "r") as f:
+            email = json.load(f)["client_email"]
+        creds = Credentials.from_service_account_file(secret, scopes=SCOPES)
+        self.accounts[email] = creds
+        return creds
+
+    def authenticate_service_account(self, secrets_dir, account_idx):
+        if os.path.isdir(secrets_dir):
+            for file in (os.path.join(secrets_dir, x) for x in os.listdir(secrets_dir) if x.lower().endswith(".json")):
+                self.set_creds_for_secret(file)
+
+            creds = sorted(self.accounts.items(), key=lambda x: x[0])[account_idx - 1][1]
+
+        elif os.path.isfile(secrets_dir):
+            creds = self.set_creds_for_secret(secrets_dir)
+        else:
+            logger.error(f"Secrets file/dir not found: {secrets_dir}")
+            sys.exit(1)
+
+        return creds
+
+    def authenticate_oauth(self):
+        pass
+
+    def _set_secret(self, creds):
+        email = [k for k, v in self.accounts.items() if v == creds][0]
         self._set_secret_by_email(email)
 
     def _set_secret_by_email(self, email):
-        secret = self.accounts[email]
+        creds = self.accounts[email]
 
         self.email = email
-        self.api = GoogleDriveApiWrapper(self._create_creds(secret))
+        self.api = GoogleDriveApiWrapper(creds)
         self.cache = InfoCache(self.api)
         logger.info(f"Using account {self.email}")
-
-    def _create_creds(self, secret):
-        credentials = Credentials.from_service_account_file(secret, scopes=SCOPES)
-        return credentials
 
     async def run(self, *args, **kwargs):
         raise NotImplementedError("run method not implemented")

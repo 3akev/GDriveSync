@@ -18,8 +18,8 @@ class GoogleDriveBrowser(GoogleDriveClient):
     Only owner's files are shown. Only supports browsing, no file operations are performed.
     """
 
-    def __init__(self, secrets_dir, account_idx) -> None:
-        super().__init__(secrets_dir, account_idx)
+    def __init__(self, args) -> None:
+        super().__init__(args)
 
         self.copied_files = set()
         self.folders_copied = list()
@@ -31,9 +31,7 @@ class GoogleDriveBrowser(GoogleDriveClient):
             folder_id = stack[-1]
 
             # Get the list of files in the folder
-            files = sorted(
-                self.cache.get_folder_children(folder_id), key=files_sort_key
-            )
+            files = sorted(self.cache.get_folder_children(folder_id), key=files_sort_key)
             # Print the names of the files with numbers
             print(f'\n{"/".join(namestack)}')
             print("  0.  ..")
@@ -56,9 +54,7 @@ class GoogleDriveBrowser(GoogleDriveClient):
             chosen_file_number = -1
             while not 0 <= chosen_file_number <= len(files):
                 try:
-                    chosen_file_number = int(
-                        input("Enter the number of a file to open: ")
-                    )
+                    chosen_file_number = int(input("Enter the number of a file to open: "))
                 except ValueError:
                     print("Invalid input. Please enter a number.")
 
@@ -82,11 +78,9 @@ class GoogleDriveBrowser(GoogleDriveClient):
                     else:
                         logger.warning(f"Shortcut not in cache: {target_id}")
                 else:
-                    logger.warning(
-                        f"{chosen_file_number}.  {fileinfo['name']} is not a folder"
-                    )
+                    logger.warning(f"{chosen_file_number}.  {fileinfo['name']} is not a folder")
 
-    async def run(self, root: str = "root", orphans: bool = False):
+    async def run(self, root: str = "root", orphans: bool = False):  # type: ignore
         fields = {"createdTime", "modifiedTime"}
 
         if root == "root":
@@ -114,7 +108,5 @@ class GoogleDriveBrowser(GoogleDriveClient):
         logger.debug("Virtually adopting orphaned files...")
 
         for file_id, info in self.cache.get_orphan_files():
-            logger.trace(
-                f"Orphaned file: {file_id.ljust(80)}{info['name']}\t {info.get('parent', '')}"
-            )
+            logger.trace(f"Orphaned file: {file_id.ljust(80)}{info['name']}\t {info.get('parent', '')}")  # type: ignore
             info["parent"] = root
