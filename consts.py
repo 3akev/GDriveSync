@@ -28,9 +28,7 @@ def add_logging_level(levelName, levelNum, methodName=None):
 
 
 def setup_logger():
-    logging.basicConfig(
-        stream=sys.stderr, format="%(asctime)s - [%(name)s][%(levelname)s]: %(message)s"
-    )
+    logging.basicConfig(stream=sys.stderr, format="%(asctime)s - [%(name)s][%(levelname)s]: %(message)s")
     log = logging.getLogger("gdrive")
     log.setLevel(logging.INFO)
 
@@ -45,6 +43,7 @@ FOLDER_TYPE = "application/vnd.google-apps.folder"
 SHORTCUT_TYPE = "application/vnd.google-apps.shortcut"
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
+CLIENT_SECRETS_FILE = "./res/oauth_secret.json"
 
 BATCH_SIZE = 100
 MAXIMUM_BACKOFF = 60
