@@ -41,7 +41,7 @@ def cleanup_files(args):
     asyncio.run(cleaner.run(*args.delete, dry_run=args.dry_run))
 
 
-def backup_files(args):
+def clone_files(args):
     googledrivecloner = GoogleDriveCloner(args)
     asyncio.run(
         googledrivecloner.run(
@@ -116,8 +116,8 @@ def parse_arguments():
     cleanup_parser.add_argument("delete", help="File IDs to delete", nargs="+")
     cleanup_parser.add_argument("--dry-run", help="Print files to delete", action="store_true")
 
-    backup_parser = subparsers.add_parser("backup", help="Backup files")
-    backup_parser.set_defaults(func=backup_files)
+    backup_parser = subparsers.add_parser("clone", help="Copy files")
+    backup_parser.set_defaults(func=clone_files)
     backup_parser.add_argument("--dry-run", help="Print files to copy", action="store_true")
     backup_parser.add_argument("--name", help="New folder name", default=new_folder_name)
 

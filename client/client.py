@@ -5,7 +5,8 @@ import sys
 from google.oauth2.service_account import Credentials
 from api.api_wrapper import GoogleDriveApiWrapper
 from api.info_cache import InfoCache
-from consts import logger, SCOPES
+from consts import logger, SCOPES, CLIENT_SECRETS_FILE
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 
 class GoogleDriveClient:
@@ -19,7 +20,7 @@ class GoogleDriveClient:
         self.oauth = args.oauth
 
         creds = self.authenticate(args)
-        self._set_secret(creds)
+        self._set_secret_by_creds(creds)
 
     def authenticate(self, args):
         if args.oauth:
@@ -51,15 +52,22 @@ class GoogleDriveClient:
         return creds
 
     def authenticate_oauth(self):
-        pass
+        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        credentials = flow.run_local_server()
+        return credentials
 
-    def _set_secret(self, creds):
-        email = [k for k, v in self.accounts.items() if v == creds][0]
-        self._set_secret_by_email(email)
+    def _set_secret_by_creds(self, creds):
+        email = None
+        ls = [k for k, v in self.accounts.items() if v == creds]
+        if ls:
+            email = ls[0]
+        self._set_secret(email, creds)
 
     def _set_secret_by_email(self, email):
         creds = self.accounts[email]
+        self._set_secret(email, creds)
 
+    def _set_secret(self, email, creds):
         self.email = email
         self.api = GoogleDriveApiWrapper(creds)
         self.cache = InfoCache(self.api)
