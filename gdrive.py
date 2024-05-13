@@ -70,21 +70,15 @@ def parse_arguments():
     new_folder_name = f"drive_backup_{today}"
 
     parser = argparse.ArgumentParser(description="Copy a folder in Google Drive")
-    parser.add_argument(
-        "-v", "--verbose", help="Increase output verbosity", action="store_true"
-    )
+    parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
     parser.add_argument(
         "-vv",
         "--very-verbose",
         help="Increase output verbosity more. This is really spammy",
         action="store_true",
     )
-    parser.add_argument(
-        "-q", "--quiet", help="Decrease output verbosity", action="store_true"
-    )
-    parser.add_argument(
-        "-s", "--secrets", help="Path to secrets directory or file", required=True
-    )
+    parser.add_argument("-q", "--quiet", help="Decrease output verbosity", action="store_true")
+    parser.add_argument("-s", "--secrets", help="Path to secrets directory or file", required=True)
     parser.add_argument(
         "-a",
         "--account",
@@ -95,9 +89,7 @@ def parse_arguments():
 
     subparsers = parser.add_subparsers()
 
-    diff_parser = subparsers.add_parser(
-        "diff", help="Diff own directory with another directory"
-    )
+    diff_parser = subparsers.add_parser("diff", help="Diff own directory with another directory")
     diff_parser.set_defaults(func=diff_directories)
     diff_parser.add_argument("first", help="First directory id")
     diff_parser.add_argument("second", help="Second directory id")
@@ -107,53 +99,33 @@ def parse_arguments():
 
     browse_parser = subparsers.add_parser("browse", help="Browse files")
     browse_parser.set_defaults(func=browse_files)
-    browse_parser.add_argument(
-        "root", help="Folder from which to start browsing", default="root", nargs="?"
-    )
-    browse_parser.add_argument(
-        "--orphans", help="Browse orphan files", action="store_true"
-    )
+    browse_parser.add_argument("root", help="Folder from which to start browsing", default="root", nargs="?")
+    browse_parser.add_argument("--orphans", help="Browse orphan files", action="store_true")
 
     link_parser = subparsers.add_parser("link", help="Create shortcut files")
     link_parser.set_defaults(func=link_files)
     link_parser.add_argument("target", help="Target item to link")
-    link_parser.add_argument(
-        "destination", help="Destination folder to link to", nargs="?"
-    )
+    link_parser.add_argument("destination", help="Destination folder to link to", nargs="?")
 
     cleanup_parser = subparsers.add_parser("delete", help="Delete files")
     cleanup_parser.set_defaults(func=cleanup_files)
     cleanup_parser.add_argument("delete", help="File IDs to delete", nargs="+")
-    cleanup_parser.add_argument(
-        "--dry-run", help="Print files to delete", action="store_true"
-    )
+    cleanup_parser.add_argument("--dry-run", help="Print files to delete", action="store_true")
 
     backup_parser = subparsers.add_parser("backup", help="Backup files")
     backup_parser.set_defaults(func=backup_files)
-    backup_parser.add_argument(
-        "--dry-run", help="Print files to copy", action="store_true"
-    )
-    backup_parser.add_argument(
-        "--name", help="New folder name", default=new_folder_name
-    )
+    backup_parser.add_argument("--dry-run", help="Print files to copy", action="store_true")
+    backup_parser.add_argument("--name", help="New folder name", default=new_folder_name)
 
     backup_parser.add_argument("source_folder_id", help="Folder ID to copy")
-    backup_parser.add_argument(
-        "destination_parent_folder_id", help="Destination folder ID"
-    )
+    backup_parser.add_argument("destination_parent_folder_id", help="Destination folder ID")
 
     rotate_parser = subparsers.add_parser("rotate", help="Rotate backups")
-    rotate_parser.add_argument(
-        "--dry-run", help="Print files to copy", action="store_true"
-    )
-    rotate_parser.add_argument(
-        "--name", help="New folder name", default=new_folder_name
-    )
+    rotate_parser.add_argument("--dry-run", help="Print files to copy", action="store_true")
+    rotate_parser.add_argument("--name", help="New folder name", default=new_folder_name)
     rotate_parser.set_defaults(func=rotate_backups)
     rotate_parser.add_argument("source_folder_id", help="Folder ID to copy")
-    rotate_parser.add_argument(
-        "destination_parent_folder_id", help="Destination folder ID"
-    )
+    rotate_parser.add_argument("destination_parent_folder_id", help="Destination folder ID")
 
     arguments = parser.parse_args()
     return arguments

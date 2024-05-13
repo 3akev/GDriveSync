@@ -4,12 +4,10 @@ from typing import Any, Dict, List, Optional, Set
 import google_auth_httplib2
 import googleapiclient
 import httplib2
-from google.oauth2.service_account import Credentials
+from api.request_batcher import GoogleDriveRequestBatcher
+from consts import FOLDER_TYPE, SHORTCUT_TYPE, logger
 from googleapiclient import discovery
 from httplib2.error import HttpLib2Error
-
-from api.request_batcher import GoogleDriveRequestBatcher
-from consts import FOLDER_TYPE, SCOPES, SHORTCUT_TYPE, logger
 
 DEFAULT_FIELDS = {
     "id",
@@ -24,20 +22,14 @@ DEFAULT_FIELDS = {
 
 
 class GoogleDriveApiWrapper:
-    def __init__(self, secret) -> None:
-        credentials = Credentials.from_service_account_file(secret, scopes=SCOPES)
-
+    def __init__(self, credentials) -> None:
         # Create a new Http() object for every request because httplib2 is not thread-safe
         # see: https://github.com/googleapis/google-api-python-client/blob/main/docs/thread_safety.md
         def build_request(http, *args, **kwargs):
-            new_http = google_auth_httplib2.AuthorizedHttp(
-                credentials, http=httplib2.Http()
-            )
+            new_http = google_auth_httplib2.AuthorizedHttp(credentials, http=httplib2.Http())
             return googleapiclient.http.HttpRequest(new_http, *args, **kwargs)  # type: ignore
 
-        authorized_http = google_auth_httplib2.AuthorizedHttp(
-            credentials, http=httplib2.Http()
-        )
+        authorized_http = google_auth_httplib2.AuthorizedHttp(credentials, http=httplib2.Http())
         self.api = discovery.build(
             "drive",
             "v3",
@@ -70,9 +62,7 @@ class GoogleDriveApiWrapper:
         return cloned
 
     async def get_file(self, file_id: str, fields: Optional[Set[str]] = None):
-        req = self.files.get(
-            fileId=file_id, fields=",".join(DEFAULT_FIELDS.union(fields or set()))
-        )
+        req = self.files.get(fileId=file_id, fields=",".join(DEFAULT_FIELDS.union(fields or set())))
         resp = await self.batcher.queue_request(req)
         return resp
 
@@ -109,9 +99,7 @@ class GoogleDriveApiWrapper:
         if query:
             kwargs["q"] = query
 
-        req = self.files.list(
-            supportsAllDrives=shared, includeItemsFromAllDrives=shared, **kwargs
-        )
+        req = self.files.list(supportsAllDrives=shared, includeItemsFromAllDrives=shared, **kwargs)
 
         # need to fetch page by page, requests aren't independent, so execute immediately
         resp = await self.batcher.queue_request(req, execute_now=not batch)
@@ -121,9 +109,7 @@ class GoogleDriveApiWrapper:
     ################################################################################
     # Wrapper functions                                                            #
     ################################################################################
-    async def fetch_all_file_info(
-        self, query=None, shared=True, fields=None, batch=False
-    ) -> List[Dict]:
+    async def fetch_all_file_info(self, query=None, shared=True, fields=None, batch=False) -> List[Dict]:
         files = []
 
         init = True
@@ -133,8 +119,7 @@ class GoogleDriveApiWrapper:
                 init = False
                 if not batch:
                     logger.debug(
-                        "Fetching page of file info with token = "
-                        f"{next_token[:20] if next_token else None}..."
+                        "Fetching page of file info with token = " f"{next_token[:20] if next_token else None}..."
                     )
                 resp = await self.fetch_file_info_one_page(
                     page_token=next_token,
@@ -151,9 +136,7 @@ class GoogleDriveApiWrapper:
 
         return files
 
-    async def create_folder(
-        self, destination_parent_id: str, new_name: str, **kwargs
-    ) -> dict:
+    async def create_folder(self, destination_parent_id: str, new_name: str, **kwargs) -> dict:
         return await self.create(
             name=new_name,
             mimeType=FOLDER_TYPE,
@@ -183,8 +166,6 @@ class GoogleDriveApiWrapper:
         return await self.create(body=shortcut_metadata)
 
     async def get_files(self, *file_ids: str, fields=None):
-        tasks = asyncio.as_completed(
-            [self.get_file(file_id, fields=fields) for file_id in file_ids]
-        )
+        tasks = asyncio.as_completed([self.get_file(file_id, fields=fields) for file_id in file_ids])
         for res in tasks:
             yield await res

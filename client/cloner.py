@@ -1,5 +1,4 @@
 import asyncio
-import time
 from typing import Optional
 
 from client.client import GoogleDriveClient
@@ -55,18 +54,12 @@ class GoogleDriveCloner(GoogleDriveClient):
 
             if pbar:
                 pbar.update(1)
-            await self.log_item_copied(
-                folder_id, len(self.folders_copied), self.num_folders_to_copy
-            )
+            await self.log_item_copied(folder_id, len(self.folders_copied), self.num_folders_to_copy)
 
             results = []
             for file_id, file_info in self.cache.get_folder_children(folder_id):
                 if file_info["mimeType"] == FOLDER_TYPE:
-                    results.append(
-                        self.copy_folder_structure(
-                            file_id, created_folder_id, pbar=pbar, dry_run=dry_run
-                        )
-                    )
+                    results.append(self.copy_folder_structure(file_id, created_folder_id, pbar=pbar, dry_run=dry_run))
                 else:
                     # results.append(self.copy_file(file_id, created_folder_id))
                     self.files_to_copy.append((file_id, created_folder_id))
@@ -75,9 +68,7 @@ class GoogleDriveCloner(GoogleDriveClient):
 
             return created_folder_id
 
-    async def copy_file(
-        self, file_id: str, destination_parent_id: str, dry_run: bool = False
-    ):
+    async def copy_file(self, file_id: str, destination_parent_id: str, dry_run: bool = False):
         item_info = self.cache.file_info[file_id]
 
         if self.cache.is_ignored(item_info["name"]):
@@ -96,16 +87,11 @@ class GoogleDriveCloner(GoogleDriveClient):
                     destination_parent_id=destination_parent_id,
                 )
             self.files_copied.add(file_id)
-            await self.log_item_copied(
-                file_id, len(self.files_copied), len(self.files_to_copy)
-            )
+            await self.log_item_copied(file_id, len(self.files_copied), len(self.files_to_copy))
             return new_file_id
 
     async def log_item_copied(self, item_id, current, total):
-        logger.trace(
-            f"Copied {self.cache.build_path(item_id).ljust(120)}"
-            f" {item_id.ljust(40)} {current}/{total}"
-        )
+        logger.trace(f"Copied {self.cache.build_path(item_id).ljust(120)}" f" {item_id.ljust(40)} {current}/{total}")
 
     async def clone(
         self,
@@ -148,9 +134,7 @@ class GoogleDriveCloner(GoogleDriveClient):
             unit="folders",
             colour="green",
         ) as pbar:
-            await self.copy_folder_structure(
-                base_folder_id, destination_parent_folder_id, new_name, pbar, dry_run
-            )
+            await self.copy_folder_structure(base_folder_id, destination_parent_folder_id, new_name, pbar, dry_run)
 
         tasks = [self.copy_file(x, y, dry_run=dry_run) for x, y in self.files_to_copy]
         logger.info(f"Number of files to copy: {len(tasks)}")
@@ -171,6 +155,4 @@ class GoogleDriveCloner(GoogleDriveClient):
         new_name: Optional[str] = None,
         dry_run: bool = False,
     ):
-        await self.clone(
-            base_folder_id, destination_parent_folder_id, new_name, dry_run
-        )
+        await self.clone(base_folder_id, destination_parent_folder_id, new_name, dry_run)
